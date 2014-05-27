@@ -7,8 +7,7 @@ class ExceptionDisplay extends ExceptionFatal
 	 */
 	public function __toString()
 	{
-		global $words;
-		$str = '<table><tr><td>'
+		$str = '<table><tr><td style="padding: 8px;">'
 		. $this -> message . '<p><a href="'
 		. Url::html_output($_SERVER['PHP_SELF']);
 		if (isset($_GET['dir']))
@@ -16,7 +15,6 @@ class ExceptionDisplay extends ExceptionFatal
 			$str .= '?dir=' . Url::translate_uri($_GET['dir']);
 		}
 		$str .= '">Continue.</a></p></td></tr></table>';
-		//$temp = new Display($str);
 		return $str;
 	}
 }

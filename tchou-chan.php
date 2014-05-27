@@ -1,73 +1,76 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
+
+function processTorrent($file) {
+  require('classes/Lightbenc.php');
+  $t = Lightbenc::bdecode($file);
+  return (is_array($t['info']['files']) ? '/' : '#') . $t['info']['name'];
+}
+
+$msg = $flash = '';
+$uploaddir  = '/home/yoann/';
+$t411prefix = 'http://www.t411.me/torrents/';
+if (isset($_COOKIE['flash'])) {
+    $flash = $_COOKIE['flash'];
+    unset($_COOKIE['flash']);
+    setcookie('flash', '', time() - 3600);
+}
 if (isset($_FILES['torrent'])) {
- $uploaddir  = '/home/yoann/';
  $uploadfile = $uploaddir . basename($_FILES['torrent']['name']);
  if (move_uploaded_file($_FILES['torrent']['tmp_name'], $uploadfile)) {
+  setcookie('flash', 'C\'est bon pour le torrent ;)', time() + 5);
   header('location: ' . $_SERVER['REQUEST_URI']); exit;
  }
- echo 'ça chie...';
+ $msg = 'L\'upload du fichier torrent a foiré !!';
+}
+if (isset($_POST['url'])) {
+  if ($_POST['url'][4] == 's') {
+      $_POST['url'] = substr_replace($_POST['url'], '', 4, 1);
+  }
+  if (false !== strstr($_POST['url'], $t411prefix)) {
+    $secret = 'wiLlRocktHaTBOAt';
+    $opts = array('http' => array('method' => 'GET', 'header' => 'Cookie: uid=?; pass=?; authKey=?; authApi=?' . "\r\n" . 'User-Agent: Lynx/2.8.8dev.12 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/2.12.18'));
+    $context = stream_context_create($opts);
+    $res = file_get_contents($_POST['url'], false, $context);
+    if (false !== $res && $res[0] == '<') {
+        $res = preg_match('!download/\?id=([0-9]+)!', $res, $output);
+        if (false !== $res) {
+            $res = file_get_contents($t411prefix . $output[0], false, $context);
+        }
+    }
+    if (false !== $res && strpos($res, 'd8:announce') === 0) {
+        file_put_contents($uploaddir . str_shuffle($secret) . '.torrent', $res);
+        setcookie('flash', 'C\'est bon pour le torrent ;) <a href="downloads.php?dir='.processTorrent($res).'">Ici</a> pour le récup !', time() + 5);
+        header('location: ' . $_SERVER['REQUEST_URI']); exit;
+    }
+    $msg = 'Y a un truc qui va pas avec le lien que t\'as filé...';
+  } else {
+    $msg = 'Le lien commence pas par ce qu\'il faut...';
+  }
 }
 ?><!DOCTYPE html>
 <html>
 <head>
  <meta charset="utf-8">
  <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
- <style>
- body {
-  padding: 0 100px 100px;
-  background-color: #ccddee !important;
- }
- h1#header {
-  text-align: center;
-  padding: 50px;
-  font-size: 62px;
-  font-family: "Pacifico";
-  text-shadow: 0 2px 2px #3c77b3;
- }
- form {
-  position: relative;
-  padding-left: 75px;
-  padding-right: 75px;
-  height: 150px;
-  margin-bottom: 30px;
-  background-color: #FFF;
-  -moz-border-radius: 150px;
-  -webkit-border-radius: 150px;
-  border-radius: 150px;
- }
- fieldset {
-  padding: 10px;
-  padding-top: 35px;
-  height: 225px;
-  -moz-border-radius: 3px;
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
- }
- label {
-  color: #888;
- }
- input#torrent {
-  display: inline-block;
- }
- input[type="submit"] {
-  margin-left: 25px;
- }
- p {
-  margin-top: 20px;
-  text-align: center;
- }
- </style>
+ <link href="styles/main.min.css" rel="stylesheet">
 </head>
 
 <body>
 <h1 id="header" class="text-primary">Downloader</h1>
 
 <div class="container">
- <form method="post" enctype="multipart/form-data">
+<?php
+if ($flash != '') { ?>
+ <div class="alert alert-success"><?= $flash ?></div>
+<?php }
+if ($msg != '') { ?>
+ <div class="alert alert-warning"><?= $msg ?></div>
+<?php } ?>
+ <form method="post">
   <fieldset>
-   <label for="torrent">Fichier torrent :</label> <input id="torrent" name="torrent" type="file" accept="application/x-bittorrent" required />
+   <label for="url">Lien du torrent :</label> <input id="url" name="url" type="url" required />
 
    <input type="submit" value="C'est parti !" class="btn btn-primary" />
 

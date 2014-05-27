@@ -1,9 +1,12 @@
 <?php
 error_reporting(E_ALL | E_NOTICE);
 
+setlocale(LC_ALL, 'fr_FR.UTF-8');
+
 $config = array(
     'base_dir' => 'd0wnLoadS',
-    'icon_path' => 'index_icons/',
+    //'icon_path' => 'icons/',
+    'icon_path' => '//d1yk11tqvlcywn.cloudfront.net/icons/',
     'days_new' => 3,
     );
 
@@ -17,7 +20,7 @@ define('PATH_TO_TEMPLATES', 'templates/');
  * Format to display dates in.
  * @see date()
  */
-define('DATE_FORMAT', 'j F Y');
+define('DATE_FORMAT', '%e %B %Y');
 
 define('SECONDS_NEW',  10  );
 
@@ -57,8 +60,6 @@ class ExceptionFatal extends Exception {}
 
 try
 {
-	include(CONFIG_STORED);
-	
 	/* From this point on, we can throw ExceptionDisplay rather than
 	 * Exception since all the configuration is done.
 	 */	
@@ -84,8 +85,9 @@ try
 		{
 			header('HTTP/1.0 404 Not Found');
 			$_GET['dir'] = ''; //so the "continue" link will work
-			throw new ExceptionDisplay('The directory <em>'
-			. Url::html_output($dir) . '</em> does not exist.');
+			throw new ExceptionDisplay('Le dossier <em>'
+                . Url::html_output($dir) . '</em> n\'existe pas. Si vous '
+                . 'venez d\'uploader le torrent, il faut attendre quelques secondes.');
 		}
 		$subdir = substr($dir, strlen($config['base_dir']));
 	}

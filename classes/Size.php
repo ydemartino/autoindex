@@ -76,3 +76,4 @@ class Size
 		return $this -> formatted();
 	}
 }
+

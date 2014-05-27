@@ -59,7 +59,7 @@ abstract class Item
 		{
 			return '&nbsp;';
 		}
-		return date(DATE_FORMAT, $timestamp);
+		return strftime(DATE_FORMAT, $timestamp);
 	}
 	
 	/**
