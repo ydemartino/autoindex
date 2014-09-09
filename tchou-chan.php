@@ -34,17 +34,22 @@ if (isset($_POST['url'])) {
     $context = stream_context_create($opts);
     $res = file_get_contents($_POST['url'], false, $context);
     if (false !== $res && $res[0] == '<') {
-        $res = preg_match('!download/\?id=([0-9]+)!', $res, $output);
-        if (false !== $res) {
-            $res = file_get_contents($t411prefix . $output[0], false, $context);
-        }
+		$tabernak = preg_match('!\(VFQ/French\)!', $res);
+		if (1 === $tabernak) {
+			$msg = '<p text-align="center">MORT AUX TABERNAK<br/><img src="//d1yk11tqvlcywn.cloudfront.net/keep-calm-and-fuck-canada.png" alt="KEEP CALM AND FUCK CANADA"/></p>';
+		} else {
+			$res = preg_match('!download/\?id=([0-9]+)!', $res, $output);
+			if (false !== $res) {
+				$res = file_get_contents($t411prefix . $output[0], false, $context);
+			}
+		}
     }
     if (false !== $res && strpos($res, 'd8:announce') === 0) {
         file_put_contents($uploaddir . str_shuffle($secret) . '.torrent', $res);
         setcookie('flash', 'C\'est bon pour le torrent ;) <a href="downloads.php?dir='.processTorrent($res).'">Ici</a> pour le récup !', time() + 5);
         header('location: ' . $_SERVER['REQUEST_URI']); exit;
     }
-    $msg = 'Y a un truc qui va pas avec le lien que t\'as filé...';
+	if ('' == $msg) $msg = 'Y a un truc qui va pas avec le lien que t\'as filé...';
   } else {
     $msg = 'Le lien commence pas par ce qu\'il faut...';
   }
@@ -54,7 +59,7 @@ if (isset($_POST['url'])) {
 <head>
  <meta charset="utf-8">
  <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
- <link href="styles/main.min.css" rel="stylesheet">
+ <link href="//d1yk11tqvlcywn.cloudfront.net/styles/main.min.css" rel="stylesheet">
 </head>
 
 <body>
